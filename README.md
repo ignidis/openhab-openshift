@@ -1,0 +1,1 @@
+This is just a variation of the openhab-docker setup; tailored to be used under Openshift.

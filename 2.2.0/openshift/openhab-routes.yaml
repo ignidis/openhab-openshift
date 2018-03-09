@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Route
+metadata:
+  creationTimestamp: '2018-03-04T20:46:39Z'
+  name: web-console
+  namespace: openhab
+  resourceVersion: '3365939'
+  selfLink: /oapi/v1/namespaces/openhab/routes/web-console
+  uid: 231101ca-1fed-11e8-8034-02163e6303d0
+spec:
+  host: openhab.os.cybearth.net
+  port:
+    targetPort: 8080-tcp
+  to:
+    kind: Service
+    name: openhab
+    weight: 100
+  wildcardPolicy: None
