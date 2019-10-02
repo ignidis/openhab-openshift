@@ -1,6 +1,0 @@
-[openHAB-Stable]
-name=openHAB 2.2.0 Stable
-baseurl=https://dl.bintray.com/openhab/rpm-repo2/stable
-gpgcheck=1
-gpgkey=https://bintray.com/user/downloadSubjectPublicKey?username=openhab
-enabled=1
