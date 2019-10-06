@@ -1,4 +1,13 @@
-#!/bin/bash
+#!/bin/sh
+#
+#
+# Initialize anonymous user (openshift service account)
+#
+if ! whoami &> /dev/null; then
+    if [ -w /etc/passwd ]; then
+        echo "${USER_NAME:-svcacct}:x:$(id -u):0:${USER_NAME:-svcacct} user:${OPENHAB_HOME:-/home/openhab}:/sbin/nologin" >> /etc/passwd
+    fi
+fi
 #
 # Echo DEBUG Info to the console
 #
