@@ -160,7 +160,7 @@ objects:
       targetPort: 8443
       protocol: TCP
       name: openhab-https
-    - port: ${{OPENHAB_FRONTAL_PORT}}
+    - port: ${{OPENHAB_FRONTAIL_PORT}}
       targetPort: 9001
       protocol: TCP
       name: openhab-frontail
@@ -180,7 +180,22 @@ objects:
   spec:
     host: ${OPENHAB_HOSTNAME}.os.cybearth.net
     port:
-      targetPort: pm2-cci
+      targetPort: openhab-http
+    to:
+      kind: Service
+      name: openhab
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: openhab-frontail
+    labels:
+      app: openhab
+  spec:
+    host: ${OPENHAB_HOSTNAME}-frontail.os.cybearth.net
+    port:
+      targetPort: openhab-frontail
     to:
       kind: Service
       name: openhab
