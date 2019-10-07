@@ -122,6 +122,48 @@ objects:
                 protocol: TCP
               - containerPort: 5007
                 protocol: TCP
+              - containerPort: 9125
+                protocol: TCP
+              - containerPort: 9126
+                protocol: TCP
+              - containerPort: 9127
+                protocol: TCP
+              - containerPort: 9128
+                protocol: TCP
+              - containerPort: 9129
+                protocol: TCP
+              - containerPort: 9130
+                protocol: TCP
+              - containerPort: 9131
+                protocol: TCP
+              - containerPort: 9132
+                protocol: TCP
+              - containerPort: 9133
+                protocol: TCP
+              - containerPort: 9134
+                protocol: TCP
+              - containerPort: 9135
+                protocol: TCP
+              - containerPort: 9136
+                protocol: TCP
+              - containerPort: 9137
+                protocol: TCP
+              - containerPort: 9138
+                protocol: TCP
+              - containerPort: 9139
+                protocol: TCP
+              - containerPort: 9140
+                protocol: TCP
+              - containerPort: 9141
+                protocol: TCP
+              - containerPort: 9142
+                protocol: TCP
+              - containerPort: 9143
+                protocol: TCP
+              - containerPort: 9144
+                protocol: TCP
+              - containerPort: 9145
+                protocol: TCP
             resources: {}
             terminationMessagePath: /dev/termination-log
             terminationMessagePolicy: File
@@ -160,7 +202,7 @@ objects:
     labels:
       app: openhab
   spec:
-    type: ClusterIP
+    type: LoadBalancer
     ports:
     - port: ${{OPENHAB_HTTP_PORT}}
       targetPort: 8080
@@ -178,6 +220,90 @@ objects:
       targetPort: 5007
       protocol: TCP
       name: openhab-lsp
+    - port: 9125
+      targetPort: 9125
+      protocol: TCP
+      name: openhab-callback-01
+    - port: 9126
+      targetPort: 9126
+      protocol: TCP
+      name: openhab-callback-02
+    - port: 9127
+      targetPort: 9127
+      protocol: TCP
+      name: openhab-callback-03
+    - port: 9128
+      targetPort: 9128
+      protocol: TCP
+      name: openhab-callback-04
+    - port: 9129
+      targetPort: 9129
+      protocol: TCP
+      name: openhab-callback-05
+    - port: 9130
+      targetPort: 9130
+      protocol: TCP
+      name: openhab-callback-06
+    - port: 9131
+      targetPort: 9131
+      protocol: TCP
+      name: openhab-callback-07
+    - port: 9132
+      targetPort: 9132
+      protocol: TCP
+      name: openhab-callback-08
+    - port: 9133
+      targetPort: 9133
+      protocol: TCP
+      name: openhab-callback-09
+    - port: 9134
+      targetPort: 9134
+      protocol: TCP
+      name: openhab-callback-10
+    - port: 9135
+      targetPort: 9135
+      protocol: TCP
+      name: openhab-callback-11
+    - port: 9136
+      targetPort: 9136
+      protocol: TCP
+      name: openhab-callback-12
+    - port: 9137
+      targetPort: 9137
+      protocol: TCP
+      name: openhab-callback-13
+    - port: 9138
+      targetPort: 9138
+      protocol: TCP
+      name: openhab-callback-14
+    - port: 9139
+      targetPort: 9139
+      protocol: TCP
+      name: openhab-callback-15
+    - port: 9140
+      targetPort: 9140
+      protocol: TCP
+      name: openhab-callback-16
+    - port: 9141
+      targetPort: 9141
+      protocol: TCP
+      name: openhab-callback-17
+    - port: 9142
+      targetPort: 9142
+      protocol: TCP
+      name: openhab-callback-18
+    - port: 9143
+      targetPort: 9143
+      protocol: TCP
+      name: openhab-callback-19
+    - port: 9144
+      targetPort: 9144
+      protocol: TCP
+      name: openhab-callback-20
+    - port: 9145
+      targetPort: 9145
+      protocol: TCP
+      name: openhab-callback-21
     selector:
       app: openhab
       deploymentconfig: openhab

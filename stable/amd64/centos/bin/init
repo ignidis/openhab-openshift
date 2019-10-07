@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Initialize path to work directories
 #
@@ -53,6 +53,14 @@ echo "CALLBACK Range: $OPENHAB_CALLBACK_RANGE"
 		#
 	    echo "No userdata found... initializing."
     	cp -av "/opt/openhab/userdata.dist/." "/opt/openhab/userdata/"
+	else
+		#
+		# Reset the log files
+		#
+		rm ${VAR_OPENHAB}/userdata/logs/openhab.log;
+		rm ${VAR_OPENHAB}/userdata/logs/events.log;
+		touch ${VAR_OPENHAB}/userdata/logs/openhab.log;
+		touch ${VAR_OPENHAB}/userdata/logs/events.log;
 	fi
 	if ! [ -d ${VAR_OPENHAB}/conf ]; then
 		mkdir -p ${VAR_OPENHAB}/conf;
