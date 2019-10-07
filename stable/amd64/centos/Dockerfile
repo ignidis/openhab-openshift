@@ -43,12 +43,14 @@ LABEL summary="${NAME}-${OPENHAB_VERSION} is an SMARTHOME Platform based on JAVA
 # Setup runtime variables
 #
 ENV	EXTRA_JAVA_OPTS="" \
+	OPENHAB_VERSION=${OPENHAB_VERSION} \
 	OPENHAB_HTTP_PORT="8080" \
 	OPENHAB_HTTPS_PORT="8443" \
-	OPENHAB_FRONTTAIL_PORT="9001" \
+	OPENHAB_FRONTAIL_PORT="9001" \
 	OPENHAB_LSP_PORT="5007" \
-	OPENHAB_HOME="/home/${OPENHAB_SVC_NAME}/" \
-	PATH="${APP_ROOT}/openhab/bin:${PATH}"
+	OPENHAB_CALLBACK_RANGE="9125-9145" \
+	OPENHAB_HOME="/var/lib/openhab" \
+	PATH="${APP_ROOT}/node/bin:${APP_ROOT}/openhab/bin:${PATH}"
 
 #
 # Publish the web app ports
@@ -60,12 +62,12 @@ EXPOSE "${OPENHAB_HTTP_PORT}" "${OPENHAB_HTTPS_PORT}"  "${OPENHAB_FRONTTAIL_PORT
 #
 # Create the Configuration directory
 #
-VOLUME	[${OPENHAB_HOME}/.openhab/]
+VOLUME	[${OPENHAB_HOME}]
 
 
 USER		${OPENHAB_SVC_UID}
 WORKDIR 	"${APP_ROOT}/openhab/"
-ENTRYPOINT	[ "${APP_ROOT}/openhab/openhab-run.sh" ]
+ENTRYPOINT	[ "./bin/init" ]
 CMD			["./start.sh"]
 #
 #

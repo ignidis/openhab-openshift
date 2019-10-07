@@ -20,8 +20,8 @@ ARG	OPENHAB_SVC_UID
 #
 # Runtime environment variables
 #
-ENV	OPENHAB_HOME="/home/${OPENHAB_SVC_NAME}/" \
-	PATH="${APP_ROOT}/openhab/bin:${PATH}"
+ENV	OPENHAB_HOME="/var/lib/openhab/" \
+	PATH="${APP_ROOT}/node/bin:${APP_ROOT}/openhab/bin:${PATH}"
 
 RUN \
 #
@@ -70,11 +70,11 @@ RUN \
 #
 RUN \
 	ln -s -f /bin/true /usr/bin/chfn; \
-	mkdir -p "${APP_ROOT}"; \ 
+	mkdir -p "${APP_ROOT}"; \
 #
 # CWD
 #
-	cd /home/"$SERVICE_USER"/; \
+	cd /home/${SERVICE_USER}; \
 #
 # Install the Java Runtime
 #
@@ -107,8 +107,8 @@ RUN \
 #
 # Copy the start command
 #
-COPY	bin/openhab-run.sh "${APP_ROOT}/openhab/openhab-run.sh"
-RUN		chown "${OPENHAB_SVC_NAME}":"${OPENHAB_SVC_NAME}" "${APP_ROOT}/openhab/openhab-run.sh" && chmod +x "${APP_ROOT}/openhab/openhab-run.sh"
+COPY	bin/ ${APP_ROOT}/openhab/bin/
+RUN		chown -R "${OPENHAB_SVC_NAME}":"${OPENHAB_SVC_NAME}" "${APP_ROOT}/openhab/bin" && chmod -R u+x "${APP_ROOT}/openhab/bin"
 #
 #
 #
@@ -208,9 +208,13 @@ RUN \
 # and ensure we can read the config files
 #
 RUN  \
+	mkdir -p ${OPENHAB_HOME}; \
+	ln -s ${OPENHAB_HOME} /home/${SERVICE_USER}/.openhab; \
+	chmod -R u+x ${APP_ROOT}/openhab/bin && \
+    chmod -R u+x ${APP_ROOT}/node/bin && \
 	chgrp -R 0 ${APP_ROOT} && \
-	chmod -R u+x ${APP_ROOT}/node/bin && \
-	chmod -R g=u ${APP_ROOT} /etc/passwd \
+	chgrp -R 0 /home/${SERVICE_USER} && \
+	chmod -R g=u ${APP_ROOT} /home/${SERVICE_USER} /etc/passwd /var/run /run /var/lib/openhab \
 	; 
 
 CMD     ["bash"]

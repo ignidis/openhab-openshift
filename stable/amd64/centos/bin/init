@@ -1,12 +1,17 @@
 #!/bin/sh
 #
+# Initialize path to work directories
+#
+VAR_OPENHAB=${OPENHAB_HOME:-/var/lib/openhab}
+#
 #
 # Initialize anonymous user (openshift service account)
 #
 if ! whoami &> /dev/null; then
-    if [ -w /etc/passwd ]; then
-        echo "${USER_NAME:-svcacct}:x:$(id -u):0:${USER_NAME:-svcacct} user:${OPENHAB_HOME:-/home/openhab}:/sbin/nologin" >> /etc/passwd
-    fi
+	if [ -w /etc/passwd ]; then
+		export HOME="/home/openhab"
+		echo "${USER_NAME:-svcacct}:x:$(id -u):0:${USER_NAME:-svcacct} user:${HOME}:/sbin/nologin" >> /etc/passwd
+	fi
 fi
 #
 # Echo DEBUG Info to the console
@@ -15,26 +20,28 @@ USER="$(id -un)"
 USER_ID="$(id -u)"
 echo "Starting openHAB version: $OPENHAB_VERSION"
 echo "Service Account: $USER $USER_ID"
+echo "Working Directory: ${VAR_OPENHAB}"
 echo "HTTP Port: $OPENHAB_HTTP_PORT"
 echo "HTTPS Port: $OPENHAB_HTTPS_PORT"
 echo "FRONTAIL Port: $OPENHAB_FRONTAIL_PORT"
+echo "LSP Port: $OPENHAB_LSP_PORT"
 echo "CALLBACK Range: $OPENHAB_CALLBACK_RANGE"
 #
 # Karaf needs a pseudo-TTY so exit and instruct user to allocate one when necessary
 #
 	test -t 0
 	if [ $? -eq 1 ]; then
-    	echo "Please start the openHAB container with a pseudo-TTY using the -t option or 'tty: true' with docker compose"
-	    exit 1
+		echo "Please start the openHAB container with a pseudo-TTY using the -t option or 'tty: true' with docker compose"
+		exit 1
 	fi
 	set -euo pipefail
 	IFS=$'\n\t'
 #
 # Check if the persistent configuration exists and link it into the container
 #
-	if ! [ -d ~/.openhab/userdata ]; then
-		mkdir -p ~/.openhab/userdata;
-		ln -s ~/.openhab/userdata /opt/openhab/userdata;
+	if ! [ -d ${VAR_OPENHAB}/userdata ]; then
+		mkdir -p ${VAR_OPENHAB}/userdata;
+		ln -s ${VAR_OPENHAB}/userdata /opt/openhab/userdata;
 		#
 		# Create log directory and file
 		#
@@ -47,35 +54,35 @@ echo "CALLBACK Range: $OPENHAB_CALLBACK_RANGE"
 	    echo "No userdata found... initializing."
     	cp -av "/opt/openhab/userdata.dist/." "/opt/openhab/userdata/"
 	fi
-	if ! [ -d ~/.openhab/conf ]; then
-		mkdir -p ~/.openhab/conf;
-		ln -s ~/.openhab/conf /opt/openhab/conf;
+	if ! [ -d ${VAR_OPENHAB}/conf ]; then
+		mkdir -p ${VAR_OPENHAB}/conf;
+		ln -s ${VAR_OPENHAB}/conf /opt/openhab/conf;
 		#
         # Copy initial configuration
 		#
         echo "No configuration found... initializing."
         cp -av "/opt/openhab/conf.dist/." "/opt/openhab/conf/"
 	fi
-	if ! [ -d ~/.openhab/addons ]; then
-		mkdir -p ~/.openhab/addons;
-		ln -s ~/.openhab/addons /opt/openhab/addons;
+	if ! [ -d ${VAR_OPENHAB}/addons ]; then
+		mkdir -p ${VAR_OPENHAB}/addons;
+		ln -s ${VAR_OPENHAB}/addons /opt/openhab/addons;
 	fi
 #
 # Create the container links to the persistent configuration
 #
 	if ! [ -L /opt/openhab/userdata ]; then
-		ln -s ~/.openhab/userdata /opt/openhab/userdata;
+		ln -s ${VAR_OPENHAB}/userdata /opt/openhab/userdata;
 	fi
 	if ! [ -L /opt/openhab/conf ]; then
-		ln -s ~/.openhab/conf /opt/openhab/conf;
+		ln -s ${VAR_OPENHAB}/conf /opt/openhab/conf;
 	fi
 	if ! [ -L /opt/openhab/addons ]; then
-		ln -s ~/.openhab/addons /opt/openhab/addons;
+		ln -s ${VAR_OPENHAB}/addons /opt/openhab/addons;
 	fi
 #
 # Remove the instance.properties file to avoid Karaf startup issues
 #
-	rm -f ~/.openhab/userdata/tmp/instances/instance.properties
+	rm -f ${VAR_OPENHAB}/userdata/tmp/instances/instance.properties
 
 #
 # Upgrade userdata if versions do not match
@@ -130,15 +137,14 @@ echo "CALLBACK Range: $OPENHAB_CALLBACK_RANGE"
 # Initialize and Start frontail
 #
 if [ -e /opt/node/bin/frontail ]; then
-	if ! [ -d ~/.openhab/frontail ]; then
+	if ! [ -d ${VAR_OPENHAB}/frontail ]; then
         echo "Initialize Frontail config"
-		mkdir -p ~/.openhab/frontail/preset;
-		cp -av /opt/node/lib/node_modules/frontail/preset/. ~/.openhab/frontail/preset;
+		mkdir -p ${VAR_OPENHAB}/frontail/preset;
+		cp -av /opt/node/lib/node_modules/frontail/preset/. ${VAR_OPENHAB}/frontail/preset;
 	fi
-	if [ -e ~/.openhab/frontail/preset/openhab.json ]; then
+	if [ -e ${VAR_OPENHAB}/frontail/preset/openhab.json ]; then
         echo "Start Frontail in the background"
-		/opt/node/bin/frontail --ui-highlight --ui-highlight-preset ~/.openhab/frontail/preset/openhab.json -t openhab -l 2000 -n 200 /opt/openhab/userdata/logs/openhab.log /opt/openhab/userdata/logs/events.log &>/dev/null &
-		disown;
+		/opt/node/bin/frontail --ui-highlight --ui-highlight-preset ${VAR_OPENHAB}/frontail/preset/openhab.json -t openhab -l 2000 -n 200 /opt/openhab/userdata/logs/openhab.log /opt/openhab/userdata/logs/events.log &
 	fi
 fi
 #

@@ -39,6 +39,11 @@ parameters:
   description: "TCP Port used by the Openhab Language Server Protocol listener."
   value: "5007"
   required: true
+- name: OPENHAB_CALLBACK_RANGE
+  displayName: "Openhab Port Range for callbacks"
+  description: "TCP Port range used by remotes to callback into Openhab."
+  value: "9125-9145"
+  required: true
 - name: VOLUME_CAPACITY
   displayName: "Volume Capacity"
   description: "Volume space available for openhab add-on modules, configuration, logs, etc, e.g. 512Mi, 2Gi."
@@ -123,6 +128,11 @@ objects:
             volumeMounts:
               - mountPath: /var/lib/openhab
                 name: vol-var-lib-openhab
+            env:
+              - name: ABSTRACT__TTY
+                value: "FALSE"
+            stdin: false
+            tty: true
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
