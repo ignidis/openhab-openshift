@@ -1,0 +1,188 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: cybearth-openhab
+  labels:
+    app: openhab
+  annotations:
+    description: "This template creates all openshift items required to run cybearth's openhab service"
+    iconClass: "icon-openjdk"
+    tags: "smarthome, java"
+parameters:
+- name: NAMESPACE
+  displayName: "Project Namespace"
+  description: "Use this parameter to set the Namespace (aka Project Name) the template shall use."
+  value: "sandbox"
+  required: true
+- name: OPENHAB_HOSTNAME
+  displayName: "Openhab URL Hostname"
+  description: "Use this parameter to set the hostname Openshift shall use to create the URL for the Openhab GUI."
+  value: "openhab"
+  required: true
+- name: OPENHAB_HTTP_PORT
+  displayName: "Openhab UI HTTP port"
+  description: "TCP Port used by the Openhab HTTP GUI."
+  value: "8080"
+  required: true
+- name: OPENHAB_HTTPS_PORT
+  displayName: "Openhab UI HTTPS port"
+  description: "TCP Port used by the Openhab HTTPS GUI."
+  value: "8443"
+  required: true
+- name: OPENHAB_FRONTAIL_PORT
+  displayName: "Openhab Frontail port"
+  description: "TCP Port used by the Openhab Frontail log viewer."
+  value: "9001"
+  required: true
+- name: OPENHAB_LSP_PORT
+  displayName: "Openhab LSP port"
+  description: "TCP Port used by the Openhab Language Server Protocol listener."
+  value: "5007"
+  required: true
+- name: VOLUME_CAPACITY
+  displayName: "Volume Capacity"
+  description: "Volume space available for openhab add-on modules, configuration, logs, etc, e.g. 512Mi, 2Gi."
+  value: "5Gi"
+  required: true
+objects:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: var-lib-openhab-claim
+    labels:
+      app: openhab
+    annotations:
+      volume.alpha.kubernetes.io/storage-class: glusterfs-storage
+  spec:
+    storageClassName: glusterfs-storage
+    accessModes:
+    - ReadWriteMany 
+    resources:
+     requests:
+       storage: ${VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: glusterfs-dynamic-var-lib-openhab-claim
+    labels:
+      app: openhab
+      gluster.kubernetes.io/provisioned-for-pvc: var-lib-openhab-claim
+  spec:
+    ports:
+      - port: 1
+        protocol: TCP
+        targetPort: 1
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: openhab
+    labels:
+      app: openhab
+  spec:
+    replicas: 1
+    selector:
+      app: openhab
+      deploymentconfig: openhab
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: openhab
+          deploymentconfig: openhab
+      spec:
+        containers:
+          - image:  >-
+              docker-registry.default.svc:5000/${NAMESPACE}/openhab
+            imagePullPolicy: Always
+            name: openhab
+            ports:
+              - containerPort: 8080
+                protocol: TCP
+              - containerPort: 8443
+                protocol: TCP
+              - containerPort: 9001
+                protocol: TCP
+              - containerPort: 5007
+                protocol: TCP
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+              - mountPath: /var/lib/openhab
+                name: vol-var-lib-openhab
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 60
+        volumes:
+          - name: vol-var-lib-openhab
+            persistentVolumeClaim:
+              claimName: var-lib-openhab-claim
+    test: false
+    triggers:
+      - type: ConfigChange
+      - imageChangeParams:
+          automatic: true
+          containerNames:
+            - openhab
+          from:
+            kind: ImageStreamTag
+            name: 'openhab:2.4.0-amd64-centos'
+        type: ImageChange
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: openhab
+    labels:
+      app: openhab
+  spec:
+    type: ClusterIP
+    ports:
+    - port: ${{OPENHAB_HTTP_PORT}}
+      targetPort: 8080
+      protocol: TCP
+      name: openhab-http
+    - port: ${{OPENHAB_HTTPS_PORT}}
+      targetPort: 8443
+      protocol: TCP
+      name: openhab-https
+    - port: ${{OPENHAB_FRONTAL_PORT}}
+      targetPort: 9001
+      protocol: TCP
+      name: openhab-frontail
+    - port: ${{OPENHAB_LSP_PORT}}
+      targetPort: 5007
+      protocol: TCP
+      name: openhab-lsp
+    selector:
+      app: openhab
+      deploymentconfig: openhab
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: openhab
+    labels:
+      app: openhab
+  spec:
+    host: ${OPENHAB_HOSTNAME}.os.cybearth.net
+    port:
+      targetPort: pm2-cci
+    to:
+      kind: Service
+      name: openhab
+      weight: 100
+    wildcardPolicy: None
