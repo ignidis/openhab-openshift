@@ -171,8 +171,8 @@ objects:
               - mountPath: /var/lib/openhab
                 name: vol-var-lib-openhab
             env:
-              - name: ABSTRACT__TTY
-                value: "FALSE"
+              - name: TZ
+                value: "Europe/Berlin"
             stdin: false
             tty: true
         dnsPolicy: ClusterFirst
