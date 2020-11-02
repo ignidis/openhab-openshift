@@ -193,7 +193,7 @@ objects:
             - openhab
           from:
             kind: ImageStreamTag
-            name: 'openhab:2.4.0-amd64-centos'
+            name: 'openhab:2.5.0-amd64-centos'
         type: ImageChange
 - apiVersion: v1
   kind: Service
